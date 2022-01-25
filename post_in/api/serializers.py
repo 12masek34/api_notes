@@ -1,17 +1,44 @@
 from rest_framework import serializers
 from notes import models
+from django.contrib.auth import get_user_model
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        queryset = model.objects.all()
+        fields = ('id', 'email', 'password', 'name', 'admin')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', '')
+        user = self.Meta.model(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data.pop('password', ''))
+        return super().update(instance, validated_data)
 
 
 class NoteSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField(read_only=True)
+
+    def get_author(self, obj):
+        return str(obj.author.email)
+
     class Meta:
         model = models.Note
         fields = '__all__'
 
+
 class ThinNoteSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='notes-detail')
+
     class Meta:
         model = models.Note
-        fields = ('id', 'title')
-
+        fields = ('id', 'title', 'url')
 
 # class NoteSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
