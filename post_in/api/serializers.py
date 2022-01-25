@@ -4,8 +4,13 @@ from notes import models
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Note
+        model = models.Note
         fields = '__all__'
+
+class ThinNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Note
+        fields = ('id', 'title')
 
 
 # class NoteSerializer(serializers.Serializer):
